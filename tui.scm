@@ -88,5 +88,7 @@
   (setch ch)
   )
 
-(provide "tui")
+(define-method stepch ((ch <nchar>) y x)
+  (movech ch (+ (y-of ch) y) (+ (x-of ch) x)))
 
+(provide "tui")
