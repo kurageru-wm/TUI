@@ -99,6 +99,11 @@
   (let-keywords args ((proc (lambda () #\space)))
                   (movech ch (+ (y-of ch) y) (+ (x-of ch) x) :proc proc)))
 
+(define-method display-info ((ch <nchar>))
+  (call-with-values (cut getchyx ch)
+    (cut mvprintw (- (y-of ch) 2) (x-of ch) "y:%3d x:%3d" <> <>)))
+                                  
+
 (define (draw-box)
   (box stdscr 0 0))
 
@@ -111,6 +116,15 @@
             (mvaddstr col 1 (make-string (- x 2) ch))
             (loop (+ col 1)))
           ))))
+
+(define (load-map mp)
+  (let loop ((y 1) (rest mp))
+    (if (null? rest)
+        #t
+        (begin
+          (mvaddstr y 1 (car rest))          
+          (loop (+ y 1) (cdr rest))))    
+    ))
 
 
 (define (init-tui)
