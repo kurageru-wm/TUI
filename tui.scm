@@ -22,6 +22,7 @@
 
 (define-module tui
   (use c-wrapper)
+  (use srfi-11)
   (c-load '("ncurses.h" "stdlib.h"))
   (c-load-library "libncurses.so")  
   (export-all)
@@ -64,8 +65,10 @@
    (y :init-keyword :y
       :init-value 0
       :accessor y-of)
+   (attr :init-keyword :attr
+          :init-value '()
+          :accessor attr-of)   
    ))
-
 
 (define (getwinyx)
   (values
@@ -77,26 +80,42 @@
    (y-of ch)
    (x-of ch)))
 
-
 (define-method setch ((ch <nchar>))
-  (mvaddch (y-of ch) (x-of ch) (x->number (char-of ch))))
-
-(define-method movech ((ch <nchar>) y x)
-  (setch (make <nchar> :x (x-of ch) :y (y-of ch)))
-  (set! (y-of ch) y)
-  (set! (x-of ch) x)
-  (setch ch)
+  (attrset (fold logior 0 (attr-of ch)))
+  (mvaddch (y-of ch) (x-of ch) (x->number (char-of ch)))
+  (attroff (fold logior 0 (attr-of ch)))
   )
 
-(define-method stepch ((ch <nchar>) y x)
-  (movech ch (+ (y-of ch) y) (+ (x-of ch) x)))
+(define-method movech ((ch <nchar>) y x . args)  
+  (let-keywords args ((proc (lambda () #\space)))
+                  (setch (make <nchar> :ch (proc) :x (x-of ch) :y (y-of ch)))
+                  (set! (y-of ch) y)
+                  (set! (x-of ch) x)
+                  (setch ch)
+                  )
+  )
+
+(define-method stepch ((ch <nchar>) y x . args)
+  (let-keywords args ((proc (lambda () #\space)))
+                  (movech ch (+ (y-of ch) y) (+ (x-of ch) x) :proc proc)))
 
 (define (draw-box)
   (box stdscr 0 0))
 
+(define (fill ch)
+  (let-values (((y x) (getwinyx)))
+    (let loop ((col 1))
+      (if (= col (- y 1))
+          #t
+          (begin
+            (mvaddstr col 1 (make-string (- x 2) ch))
+            (loop (+ col 1)))
+          ))))
+
 
 (define (init-tui)
   (initscr)
+  (start_color)
   (cbreak)
   (noecho)
   (curs_set 0)
