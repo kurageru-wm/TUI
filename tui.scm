@@ -91,4 +91,17 @@
 (define-method stepch ((ch <nchar>) y x)
   (movech ch (+ (y-of ch) y) (+ (x-of ch) x)))
 
+(define (draw-box)
+  (box stdscr 0 0))
+
+
+(define (init-tui)
+  (initscr)
+  (cbreak)
+  (noecho)
+  (curs_set 0)
+  (draw-box)
+  )
+  
+
 (provide "tui")
