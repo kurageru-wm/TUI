@@ -99,11 +99,6 @@
   (let-keywords args ((proc (lambda () #\space)))
                   (movech ch (+ (y-of ch) y) (+ (x-of ch) x) :proc proc)))
 
-(define-method display-info ((ch <nchar>))
-  (call-with-values (cut getchyx ch)
-    (cut mvprintw (- (y-of ch) 2) (x-of ch) "y:%3d x:%3d" <> <>)))
-                                  
-
 (define (draw-box)
   (box stdscr 0 0))
 
